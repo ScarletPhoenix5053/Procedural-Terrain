@@ -12,8 +12,12 @@ public class MapRenderer : MonoBehaviour
     private Renderer textureRenderer;
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
+    
+#pragma warning disable 0649
 
     [SerializeField] private MapDisplayMode defaultRenderMode;
+
+#pragma warning disable 0649
 
     #region Map Rendering
     public Map Map { get; set; }

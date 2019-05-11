@@ -10,7 +10,9 @@ public class MapGenerator : MonoBehaviour
 
         ThisValueIs.GreaterThanOrEqualTo(value: ref noiseMapData.Lacunarity, limit: 1);
     }
-    
+
+#pragma warning disable 0649
+
     [Header("Map Values")]
     [SerializeField] private Noise.MapData noiseMapData;
     [SerializeField] private float meshHeightMultiplier;
@@ -22,6 +24,8 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private bool autoUpdate;
     [SerializeField] private MapRenderer mapDisplay;
     [SerializeField] private TerrainLayer[] terrainLayers;
+
+#pragma warning restore 0649
 
     public bool DoAutoUpdate { get => autoUpdate; set { autoUpdate = value; } }
     public MapRenderer MapDisplay { get => mapDisplay; set { mapDisplay = value; } }
