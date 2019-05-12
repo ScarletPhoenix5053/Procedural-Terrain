@@ -6,9 +6,11 @@ public class EndlessTerrain : MonoBehaviour
 {
     [SerializeField] private float viewDistance = 300f;
     [SerializeField] private Transform viewer;
+    [SerializeField] private Material mapMaterial;
 
     private int chunkSize;
     private int chunksVisible;
+    private MapGenerator mapGen;
 
     private Dictionary<Vector2Int, Chunk> chunkDictionary = new Dictionary<Vector2Int, Chunk>();
     private List<Chunk> lastUpdateChunks = new List<Chunk>();
@@ -17,6 +19,7 @@ public class EndlessTerrain : MonoBehaviour
     {
         chunkSize = MapGenerator.ChunkSize - 1;
         chunksVisible = Mathf.RoundToInt(viewDistance / chunkSize);
+        mapGen = FindObjectOfType<MapGenerator>();
     }
     private void FixedUpdate()
     {
@@ -55,12 +58,13 @@ public class EndlessTerrain : MonoBehaviour
                 else
                 {
                     // Spawn new chunk
-                    Debug.Log("Spawning Chunk at " + viewedChunkCoord);
                     var chunkData = new ChunkData();
                     chunkData.Coordinate = viewedChunkCoord;
                     chunkData.Size = chunkSize;
                     chunkData.Viewer = viewer;
                     chunkData.ViewDistance = viewDistance;
+                    chunkData.MapGen = mapGen;
+                    chunkData.Material = mapMaterial;
                     chunkDictionary.Add(viewedChunkCoord, new Chunk(chunkData));
                 }
             }
@@ -69,6 +73,8 @@ public class EndlessTerrain : MonoBehaviour
 
     public struct ChunkData
     {
+        public MapGenerator MapGen;
+        public Material Material;
         public Vector2Int Coordinate;
         public Transform Viewer;
         public int Size;
@@ -76,10 +82,16 @@ public class EndlessTerrain : MonoBehaviour
     }
     public class Chunk
     {
-        private GameObject meshObj;
         private Vector3 position;
         private Bounds bounds;
         private Transform viewer;
+
+        private Map map;
+        private MapGenerator mapGen;
+
+        private GameObject meshObj;
+        private MeshFilter meshFilter;
+        private MeshRenderer meshRenderer;
 
         private readonly float viewDistance;
 
@@ -95,11 +107,29 @@ public class EndlessTerrain : MonoBehaviour
             viewDistance = data.ViewDistance;
             viewer = data.Viewer;
 
+
             // Generate temp plane
-            meshObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            meshObj = new GameObject("Terrain Chunk " + data.Coordinate);
+            meshFilter = meshObj.AddComponent<MeshFilter>();
+            meshRenderer = meshObj.AddComponent<MeshRenderer>();
+            meshRenderer.material = data.Material;
+
             meshObj.transform.position = position;
-            meshObj.transform.localScale = Vector3.one * data.Size / 10f;
             meshObj.SetActive(false);
+
+
+            // Start thread for mesh gen
+            mapGen = data.MapGen;
+            mapGen.RequestMap(OnMapDataRecieved);
+        }
+
+        private void OnMapDataRecieved(Map map)
+        {
+            mapGen.RequestMeshData(map, OnMeshDataRecieved);
+        }
+        private void OnMeshDataRecieved(MeshData meshData)
+        {
+            meshFilter.mesh = meshData.ToMesh();
         }
 
         public void Update()
