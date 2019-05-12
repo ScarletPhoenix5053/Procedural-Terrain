@@ -1,16 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
+using System.Threading;
+using System.Collections.Generic;
 
 public class MapGenerator : MonoBehaviour
 {
-    private void OnValidate()
-    {        
-        ThisValueIs.GreaterThanZero(ref noiseMapData.Octaves);
-        ThisValueIs.GreaterThanZero(ref noiseMapData.NoiseScale);
-
-        ThisValueIs.GreaterThanOrEqualTo(value: ref noiseMapData.Lacunarity, limit: 1);
-    }
-
+    #region Inspector
 #pragma warning disable 0649
 
     [Header("Map Values")]
@@ -18,17 +13,29 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] private float meshHeightMultiplier;
     [SerializeField] private AnimationCurve meshHeightCurve;
 
-    public const int ChunkSize = 241;
-
     [Header("Rendering")]
     [SerializeField] private bool autoUpdate;
     [SerializeField] private MapRenderer mapDisplay;
     [SerializeField] private TerrainLayer[] terrainLayers;
 
-#pragma warning restore 0649
-
+    // Editor access
     public bool DoAutoUpdate { get => autoUpdate; set { autoUpdate = value; } }
     public MapRenderer MapDisplay { get => mapDisplay; set { mapDisplay = value; } }
+
+    private void OnValidate()
+    {
+        ThisValueIs.GreaterThanZero(ref noiseMapData.Octaves);
+        ThisValueIs.GreaterThanZero(ref noiseMapData.NoiseScale);
+
+        ThisValueIs.GreaterThanOrEqualTo(value: ref noiseMapData.Lacunarity, limit: 1);
+    }
+
+#pragma warning restore 0649
+    #endregion
+
+    #region Generation
+
+    public const int ChunkSize = 241;
 
     public Map GenerateMap()
     {
@@ -68,13 +75,83 @@ public class MapGenerator : MonoBehaviour
         // Render
         if (MapDisplay != null)
         {
-            MapDisplay.DrawMap(map);
+            //MapDisplay.DrawMap(map);
         }
 
         return map;
     }
-}
 
+    #endregion
+
+    #region Threading
+
+    private Queue<MapThreadInfo<Map>> mapThreadInfoQueue = new Queue<MapThreadInfo<Map>>();
+    private Queue<MapThreadInfo<MeshData>> meshThreadInfoQueue = new Queue<MapThreadInfo<MeshData>>();
+
+    public void RequestMap(Action<Map> callBack)
+    {
+        // Start new thread
+        ThreadStart threadStart = delegate { MapDataThread(callBack); };
+        new Thread(threadStart).Start();
+    }
+    private void MapDataThread(Action<Map> callback)
+    {
+        var map = GenerateMap();
+        lock (mapThreadInfoQueue)   // Prevent another thread from accessing the same queue entry at the same time
+        {
+            mapThreadInfoQueue.Enqueue(new MapThreadInfo<Map>(callback, map));
+        }
+    }
+
+    public void RequestMeshData(Map map, Action<MeshData> callBack)
+    {
+        // Start new thread
+        ThreadStart threadStart = delegate { MeshDataThread(map, callBack); };
+        new Thread(threadStart).Start();
+    }
+    private void MeshDataThread(Map map, Action<MeshData> callBack)
+    {
+        var meshData = MeshGenerator.GenerateTerrianMesh(map.NoiseMap, map.MeshHeighMultiplier, map.MeshHeightCurve, map.LOD);
+        lock(meshThreadInfoQueue) // Prevent another thread from accessing the same queue entry at the same time
+        {
+            meshThreadInfoQueue.Enqueue(new MapThreadInfo<MeshData>(callBack, meshData));
+        }
+    }
+
+    private struct MapThreadInfo<T>
+    {
+        public readonly Action<T> CallBack;
+        public readonly T Parameter;
+
+        public MapThreadInfo(Action<T> callBack, T parameter)
+        {
+            CallBack = callBack;
+            Parameter = parameter;
+        }
+    }
+
+    private void Update()
+    {
+        if (mapThreadInfoQueue.Count > 0)
+        {
+            for (int i = 0; i < mapThreadInfoQueue.Count; i++)
+            {
+                MapThreadInfo<Map> threadInfo = mapThreadInfoQueue.Dequeue();
+                threadInfo.CallBack(threadInfo.Parameter);
+            }
+        }
+
+        if (meshThreadInfoQueue.Count > 0)
+        {
+            for (int i = 0; i < meshThreadInfoQueue.Count; i++)
+            {
+                MapThreadInfo<MeshData> threadInfo = meshThreadInfoQueue.Dequeue();
+                threadInfo.CallBack(threadInfo.Parameter);
+            }
+        }
+    }
+    #endregion
+}
 public class Map
 {
     public float[,] NoiseMap { get; set; }
