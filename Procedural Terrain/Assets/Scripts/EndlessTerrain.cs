@@ -61,6 +61,7 @@ public class EndlessTerrain : MonoBehaviour
                     chunkData.Size = chunkSize;
                     chunkData.Viewer = viewer;
                     chunkData.ViewDistance = viewDistance;
+                    chunkData.Parent = transform;
                     chunkDictionary.Add(viewedChunkCoord, new Chunk(chunkData));
                 }
             }
@@ -71,6 +72,7 @@ public class EndlessTerrain : MonoBehaviour
     {
         public Vector2Int Coordinate;
         public Transform Viewer;
+        public Transform Parent;
         public int Size;
         public float ViewDistance; 
     }
@@ -100,6 +102,7 @@ public class EndlessTerrain : MonoBehaviour
             meshObj.transform.position = position;
             meshObj.transform.localScale = Vector3.one * data.Size / 10f;
             meshObj.SetActive(false);
+            meshObj.transform.parent = data.Parent;
         }
 
         public void Update()
