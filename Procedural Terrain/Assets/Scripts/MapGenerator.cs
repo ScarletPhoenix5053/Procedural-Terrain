@@ -37,7 +37,7 @@ public class MapGenerator : MonoBehaviour
 
     public const int ChunkSize = 241;
 
-    public Map GenerateMap()
+    public Map GenerateMap(bool renderOnGeneration = false)
     {
         var map = new Map();
 
@@ -73,9 +73,9 @@ public class MapGenerator : MonoBehaviour
         map.LOD = noiseMapData.LOD;
 
         // Render
-        if (MapDisplay != null)
+        if (renderOnGeneration && MapDisplay != null)
         {
-            //MapDisplay.DrawMap(map);
+            MapDisplay.DrawMap(map);
         }
 
         return map;
