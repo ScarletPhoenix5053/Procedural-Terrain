@@ -65,6 +65,7 @@ public class MeshData
 
     public Vector2[] UVs;
 
+    public MeshData() { }
     public MeshData(int meshWidth, int meshHeight)
     {
         Verts = new Vector3[meshWidth * meshHeight];

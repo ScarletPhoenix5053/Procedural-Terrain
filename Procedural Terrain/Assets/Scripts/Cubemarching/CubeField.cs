@@ -9,18 +9,14 @@ public class CubeField
     public float[,,] points;
     public float[] GetNodeMinMaxValues()
     {
-        var minVal = float.MaxValue;
-        var maxVal = float.MinValue;
-
-        Value.MinMaxValueInCollection(points, out minVal, out maxVal);
-
+        Value.MinMaxValueInCollection(points, out float minVal, out float maxVal);
         return new float[] { minVal, maxVal };
     }
 
     public CubeField()
     {
         Size = new Vector3Int(2, 2, 2);
-        points = MarchingCubes.CreateRandomCubePoints(Size, parent: this);
+        points = MarchingCubes.CreateRandomDensity(Size);
     }
 }
 public struct CubeNode
