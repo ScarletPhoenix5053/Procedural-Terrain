@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(MapGenerator))]
-public class MapGeneratorEditor : Editor
+[CustomEditor(typeof(TerrainCreator))]
+public class TerrainCreatorEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        var mapGen = target as MapGenerator;
+        var mapGen = target as TerrainCreator;
         bool inspectorValuesChanged = DrawDefaultInspector();
 
         // Generate direct to display
