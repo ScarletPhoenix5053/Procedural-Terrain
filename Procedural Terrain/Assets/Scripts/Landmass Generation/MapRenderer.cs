@@ -6,7 +6,7 @@ public class MapRenderer : MonoBehaviour
 {
     private void Awake()
     {
-        textureRenderer = GetComponent<Renderer>();
+        CheckRefs();
     }
     
     private Renderer textureRenderer;
@@ -75,6 +75,8 @@ public class MapRenderer : MonoBehaviour
     #endregion
 
     #region Validation
+    
+
     private void CheckRefs()
     {
         if (textureRenderer == null) textureRenderer = GetComponent<Renderer>();

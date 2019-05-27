@@ -6,6 +6,7 @@ public static class MeshGenerator
     public static MeshData GenerateTerrianMesh(float[,] heightMap, float heightMultiplier, AnimationCurve heightCurve, int LOD)
     {
         // Init vars
+        var m_heightCurve = new AnimationCurve(heightCurve.keys);
         var width = heightMap.GetLength(0);
         var height = heightMap.GetLength(1);
 
@@ -26,10 +27,13 @@ public static class MeshGenerator
             for (int x = 0; x < width; x += meshSimplificationIncriment)
             {
                 // Apply height
-                meshData.Verts[vertIndex] = new Vector3(
-                    topLeftX + x,
-                    heightCurve.Evaluate(heightMap[x,y]) * heightMultiplier,
-                    topLeftZ - y);
+                lock(heightCurve)
+                {
+                    meshData.Verts[vertIndex] = new Vector3(
+                        topLeftX + x,
+                        m_heightCurve.Evaluate(heightMap[x, y]) * heightMultiplier,
+                        topLeftZ - y);
+                }
 
                 // Create UV
                 meshData.UVs[vertIndex] = new Vector2(
@@ -58,6 +62,7 @@ public static class MeshGenerator
         return meshData;
     }
 }
+
 public class MeshData
 {
     public Vector3[] Verts;
