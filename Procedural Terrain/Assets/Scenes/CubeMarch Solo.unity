@@ -306,4 +306,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e611d7ba7e4437b47a01b204fb576fb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundLevel: -1
+  groundLevel: 0.44
