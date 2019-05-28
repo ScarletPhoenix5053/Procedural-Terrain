@@ -5,19 +5,22 @@ using UnityEngine;
 public class EndlessTerrain : MonoBehaviour
 {
 #pragma warning disable 0414
-    [SerializeField] private float ViewDistance = 300f;
+    [SerializeField] private float viewDistance = 300f;
     [SerializeField] private Transform viewer;
     [SerializeField] private Material mapMaterial;
 
+    private TerrainCreator terrain;
     private int chunkSize;
     private int chunksVisible;
+    private List<Chunk> lastUpdateChunks;
+    private Dictionary<Vector2, Chunk> chunkDictionary;
 #pragma warning restore 0414
 
     private void Start()
     {
         chunkSize = MapGenerator.ChunkSize - 1;
         chunksVisible = Mathf.RoundToInt(viewDistance / chunkSize);
-        mapGen = FindObjectOfType<MapGenerator>();
+        terrain = FindObjectOfType<TerrainCreator>();
     }
     private void FixedUpdate()
     {
@@ -62,7 +65,7 @@ public class EndlessTerrain : MonoBehaviour
                     chunkData.Viewer = viewer;
                     chunkData.ViewDistance = viewDistance;
                     chunkData.Parent = transform;
-                    chunkData.MapGen = mapGen;
+                    chunkData.Terrain = terrain;
                     chunkData.Material = mapMaterial;
                     chunkDictionary.Add(viewedChunkCoord, new Chunk(chunkData));
                 }
@@ -72,7 +75,7 @@ public class EndlessTerrain : MonoBehaviour
 
     public struct ChunkData
     {
-        public MapGenerator MapGen;
+        public TerrainCreator Terrain;
         public Material Material;
         public Vector2Int Coordinate;
         public Transform Viewer;
@@ -86,8 +89,8 @@ public class EndlessTerrain : MonoBehaviour
         private Bounds bounds;
         private Transform viewer;
 
-        private Map map;
-        private MapGenerator mapGen;
+        private LandmassMap map;
+        private TerrainCreator terrain;
 
         private GameObject meshObj;
         private MeshFilter meshFilter;
@@ -120,13 +123,13 @@ public class EndlessTerrain : MonoBehaviour
 
 
             // Start thread for mesh gen
-            mapGen = data.MapGen;
-            mapGen.RequestMap(OnMapDataRecieved);
+            terrain = data.Terrain;
+            //terrain.RequestMap(OnMapDataRecieved);
         }
 
-        private void OnMapDataRecieved(Map map)
+        private void OnMapDataRecieved(LandmassMap map)
         {
-            mapGen.RequestMeshData(map, OnMeshDataRecieved);
+            //terrain.RequestMeshData(map, OnMeshDataRecieved);
         }
         private void OnMeshDataRecieved(MeshData meshData)
         {

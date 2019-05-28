@@ -18,13 +18,13 @@ public class TerrainCreatorEditor : Editor
             // Auto Update
             if (inspectorValuesChanged && mapGen.DoAutoUpdate)
             {
-                mapGen.GenerateMap(true);
+                mapGen.GenerateMap();
             }
 
             // Button press
             if (GUILayout.Button("Generate New Map"))
             {
-                mapGen.GenerateMap(true);
+                mapGen.GenerateMap();
             }
 
         }        
